@@ -1,0 +1,39 @@
+local _M = {}
+
+local function ends_with(str, ending)
+	return ending == '' or str:sub(-#ending) == ending
+end
+
+function _M.get_commands()
+	local commands = {}
+	local spritesheet_split = {
+		label = 'Spritesheet: Split',
+		locations = {'Assets'},
+		query = {
+			selection = {type = 'resource', cardinality = 'one'}
+		},
+		active = function(opts)
+			local path = editor.get(opts.selection, 'path')
+			return ends_with(path, '.json')
+		end,
+		run = function(opts)
+			local path = editor.get(opts.selection, 'path'):sub(2)
+			local command
+			if editor.platform == 'x86_64-win32' then
+				command = {'cmd', '/C', 'spritesheet_script\\bin\\win32\\spritesheet.exe', path}
+			elseif editor.platform == 'x86_64-macos' then
+				command = {'./spritesheet_script/bin/macos/spritesheet', path}
+			elseif editor.platform == 'x86_64-linux' then
+				command = {'./spritesheet_script/bin/linux/spritesheet', path}
+			end
+			return {
+				{action = 'shell', command = command}
+			}
+		end
+	}
+
+	table.insert(commands, spritesheet_split)
+	return commands
+end
+
+return _M
